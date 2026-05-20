@@ -5,32 +5,44 @@
 </head>
 <body>
     <h1>Offline System Notification Demo</h1>
-    <p>Click the button to get a system notification.</p>
-    <button id="notifyBtn">Send Notification</button>
+    <p>Click the button to get system notifications.</p>
+    <button id="notifyBtn">Send Notifications</button>
 
     <script>
         const notifyBtn = document.getElementById('notifyBtn');
 
-        // Function to send a notification
-        function sendNotification() {
-            // Check if the browser supports notifications
+        // ===========================
+        // CONFIGURATION (EASILY EDITABLE)
+        // ===========================
+const amount_at_once = 24; // Number of pop-ups per batch
+const the_wait_seconds = 0.2; // Seconds between each batch
+const the_wait = the_wait_seconds * 1000; // Converted to milliseconds
+
+        // Messages to send (edit these freely)
+        const messages = [
+            "⏰ Time to practice your skills!",
+            "📚 Review your notes!",
+            "💡 Try a new challenge!",
+            "🚀 Keep up the momentum!"
+        ];
+
+        // ===========================
+        // NOTIFICATION FUNCTIONS
+        // ===========================
+        function sendSingleNotification(message) {
             if (!("Notification" in window)) {
                 alert("This browser does not support system notifications.");
                 return;
             }
 
-            // Handle permission states
             if (Notification.permission === "granted") {
-                // Permission already granted, send notification
-                new Notification("⏰ Time to practice your skills!");
+                new Notification(message);
             } else if (Notification.permission === "denied") {
-                // Permission denied
-                alert("You blocked notifications. Enable them in your browser settings to receive reminders.");
+                alert("You blocked notifications. Enable them in your browser settings.");
             } else {
-                // Request permission
                 Notification.requestPermission().then(permission => {
                     if (permission === "granted") {
-                        new Notification("⏰ Time to practice your skills!");
+                        new Notification(message);
                     } else {
                         alert("Notifications blocked. You won't receive system notifications.");
                     }
@@ -38,18 +50,23 @@
             }
         }
 
-        // Button click triggers notification
-        notifyBtn.addEventListener('click', sendNotification);
+        function sendAllNotifications() {
+            // Send only up to 'amount_at_once' notifications
+            for (let i = 0; i < Math.min(amount_at_once, messages.length); i++) {
+                sendSingleNotification(messages[i]);
+            }
+        }
 
-        // Optional: Automatic repeating reminder every 1 minute
-        // Comment out if you only want manual button notifications
-        /*
+        // Button click triggers notifications
+        notifyBtn.addEventListener('click', sendAllNotifications);
+
+        // Automatic repeating notifications
         setInterval(() => {
             if (Notification.permission === "granted") {
-                new Notification("⏰ Friendly reminder: Keep practicing!");
+                sendAllNotifications();
             }
-        }, 60000); // 60000ms = 1 minute
-        */
+        }, the_wait);
+
     </script>
 </body>
 </html>
