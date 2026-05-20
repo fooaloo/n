@@ -1,65 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Notification App</title>
-    <link rel="manifest" href="manifest.json">
-    <style>
-        body {
-            font-family: system-ui, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #1e1e24;
-        }
-        button {
-            padding: 16px 32px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #1e1e24;
-            background-color: #00ffcc;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,255,204,0.3);
-        }
-    </style>
+    <title>System Notification Demo</title>
 </head>
 <body>
-
-    <button id="notifyBtn">Trigger Offline Notification</button>
+    <h1>Offline System Notification Demo</h1>
+    <p>Click the button to get a system notification.</p>
+    <button id="notifyBtn">Send Notification</button>
 
     <script>
-        // Register the offline service worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log('Service Worker Registered'));
-        }
+        const notifyBtn = document.getElementById('notifyBtn');
 
-        const button = document.getElementById('notifyBtn');
-
-        button.addEventListener('click', async () => {
+        // Function to send a notification
+        function sendNotification() {
+            // Check if the browser supports notifications
             if (!("Notification" in window)) {
-                alert("Notifications not supported.");
+                alert("This browser does not support system notifications.");
                 return;
             }
 
-            // Ask for permission locally
-            if (Notification.permission !== "granted") {
-                const permission = await Notification.requestPermission();
-                if (permission !== "granted") return;
+            // Handle permission states
+            if (Notification.permission === "granted") {
+                // Permission already granted, send notification
+                new Notification("⏰ Time to practice your skills!");
+            } else if (Notification.permission === "denied") {
+                // Permission denied
+                alert("You blocked notifications. Enable them in your browser settings to receive reminders.");
+            } else {
+                // Request permission
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("⏰ Time to practice your skills!");
+                    } else {
+                        alert("Notifications blocked. You won't receive system notifications.");
+                    }
+                });
             }
+        }
 
-            // Trigger notification through the active registration (works offline)
-            const registration = await navigator.serviceWorker.ready;
-            registration.showNotification("Offline Alert", {
-                body: "This notification was generated entirely offline!",
-                tag: "offline-demand"
-            });
-        });
+        // Button click triggers notification
+        notifyBtn.addEventListener('click', sendNotification);
+
+        // Optional: Automatic repeating reminder every 1 minute
+        // Comment out if you only want manual button notifications
+        /*
+        setInterval(() => {
+            if (Notification.permission === "granted") {
+                new Notification("⏰ Friendly reminder: Keep practicing!");
+            }
+        }, 60000); // 60000ms = 1 minute
+        */
     </script>
 </body>
 </html>
