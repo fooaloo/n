@@ -18,8 +18,9 @@
         // ===========================
         // CONFIGURATION (EASILY EDITABLE)
         // ===========================
-        const amount_at_once = 24;       // Number of pop-ups per batch
-        const the_wait_seconds = 2.0;    // CHANGED: OS notification queues require a delay (0.2s will freeze/lag)
+        const amount_at_once = 24;       // Total number of pop-ups per batch
+        const stagger_delay = 500;       // NEW: Delay in MILLISECONDS between individual popups (500ms = 0.5s)
+        const the_wait_seconds = 15.0;   // Wait time before the entire batch repeats automatically
         const the_wait = the_wait_seconds * 1000; 
 
         // Messages to send (edit these freely)
@@ -34,7 +35,6 @@
         // NOTIFICATION FUNCTIONS
         // ===========================
         
-        // Asks for permission ONCE upfront before spamming notifications
         async function checkPermission() {
             if (!("Notification" in window)) {
                 alert("This browser does not support system notifications.");
@@ -50,33 +50,35 @@
         }
 
         function sendSingleNotification(message, index) {
-            // Added unique tags and slight visual differences so the OS doesn't collapse them into one single alert
             new Notification(`${message}`, {
-                body: `Batch item #${index + 1}`,
+                body: `Staggered item #${index + 1} of ${amount_at_once}`,
                 tag: `msg-id-${Date.now()}-${index}-${Math.random()}` 
             });
         }
 
-        function sendAllNotifications() {
-            // Cycles through the short message array to successfully send the full 'amount_at_once' quantity
+        function sendAllNotificationsStaggered() {
+            // Loops 24 times, but uses setTimeout to delay each notification incrementally
             for (let i = 0; i < amount_at_once; i++) {
                 const messageTemplate = messages[i % messages.length]; 
-                sendSingleNotification(messageTemplate, i);
+                
+                setTimeout(() => {
+                    sendSingleNotification(messageTemplate, i);
+                }, i * stagger_delay); // Item 0 fires at 0ms, Item 1 at 500ms, Item 2 at 1000ms, etc.
             }
         }
 
-        // Button click triggers notifications after verifying permission
+        // Button click triggers the staggered queue after verifying permission
         notifyBtn.addEventListener('click', async () => {
             const allowed = await checkPermission();
             if (allowed) {
-                sendAllNotifications();
+                sendAllNotificationsStaggered();
             }
         });
 
-        // Automatic repeating notifications
+        // Automatic repeating batches
         setInterval(async () => {
             if (Notification.permission === "granted") {
-                sendAllNotifications();
+                sendAllNotificationsStaggered();
             }
         }, the_wait);
 
