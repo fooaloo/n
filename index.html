@@ -2,6 +2,10 @@
 <html>
 <head>
     <title>System Notification Demo</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #fafafa; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
 </head>
 <body>
     <h1>Offline System Notification Demo</h1>
@@ -14,9 +18,9 @@
         // ===========================
         // CONFIGURATION (EASILY EDITABLE)
         // ===========================
-const amount_at_once = 24; // Number of pop-ups per batch
-const the_wait_seconds = 0.2; // Seconds between each batch
-const the_wait = the_wait_seconds * 1000; // Converted to milliseconds
+        const amount_at_once = 24;       // Number of pop-ups per batch
+        const the_wait_seconds = 2.0;    // CHANGED: OS notification queues require a delay (0.2s will freeze/lag)
+        const the_wait = the_wait_seconds * 1000; 
 
         // Messages to send (edit these freely)
         const messages = [
@@ -29,39 +33,48 @@ const the_wait = the_wait_seconds * 1000; // Converted to milliseconds
         // ===========================
         // NOTIFICATION FUNCTIONS
         // ===========================
-        function sendSingleNotification(message) {
+        
+        // Asks for permission ONCE upfront before spamming notifications
+        async function checkPermission() {
             if (!("Notification" in window)) {
                 alert("This browser does not support system notifications.");
-                return;
+                return false;
             }
-
-            if (Notification.permission === "granted") {
-                new Notification(message);
-            } else if (Notification.permission === "denied") {
+            if (Notification.permission === "granted") return true;
+            if (Notification.permission === "denied") {
                 alert("You blocked notifications. Enable them in your browser settings.");
-            } else {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        new Notification(message);
-                    } else {
-                        alert("Notifications blocked. You won't receive system notifications.");
-                    }
-                });
+                return false;
             }
+            const permission = await Notification.requestPermission();
+            return permission === "granted";
+        }
+
+        function sendSingleNotification(message, index) {
+            // Added unique tags and slight visual differences so the OS doesn't collapse them into one single alert
+            new Notification(`${message}`, {
+                body: `Batch item #${index + 1}`,
+                tag: `msg-id-${Date.now()}-${index}-${Math.random()}` 
+            });
         }
 
         function sendAllNotifications() {
-            // Send only up to 'amount_at_once' notifications
-            for (let i = 0; i < Math.min(amount_at_once, messages.length); i++) {
-                sendSingleNotification(messages[i]);
+            // Cycles through the short message array to successfully send the full 'amount_at_once' quantity
+            for (let i = 0; i < amount_at_once; i++) {
+                const messageTemplate = messages[i % messages.length]; 
+                sendSingleNotification(messageTemplate, i);
             }
         }
 
-        // Button click triggers notifications
-        notifyBtn.addEventListener('click', sendAllNotifications);
+        // Button click triggers notifications after verifying permission
+        notifyBtn.addEventListener('click', async () => {
+            const allowed = await checkPermission();
+            if (allowed) {
+                sendAllNotifications();
+            }
+        });
 
         // Automatic repeating notifications
-        setInterval(() => {
+        setInterval(async () => {
             if (Notification.permission === "granted") {
                 sendAllNotifications();
             }
