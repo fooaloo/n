@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Randomized Pop-up Demo</title>
+    <title>Rapid Random Pop-up Demo</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background: #fafafa; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Offline Window Pop-up Demo</h1>
-    <p>Click the button to open scattered browser pop-ups. Make sure to allow pop-ups in your browser settings bar!</p>
+    <h1>Offline Window Pop-up Demo (Rapid Fire)</h1>
+    <p>Click the button to open scattered browser pop-ups every 0.3 seconds.</p>
     <button id="notifyBtn">Launch Pop-ups</button>
 
     <script>
@@ -19,46 +19,45 @@
         // CONFIGURATION (EASILY EDITABLE)
         // ===========================
         const amount_at_once = 24;       // Total number of pop-ups per batch
-        const stagger_delay = 500;       // Delay in milliseconds between each popup window opening (500ms = 0.5s)
+        const stagger_delay = 300;       // SPEED: 0.3 seconds between each link opening (300ms)
         const the_wait_seconds = 15.0;   // Wait time before the entire batch repeats automatically
         const the_wait = the_wait_seconds * 1000; 
-        const target_url = "https://example.com"; // The website to load inside the popups
+        const target_url = "https://example.com"; // The website link to load
 
         // ===========================
         // POP-UP FUNCTIONS
         // ===========================
         
         function openRandomWindow() {
-            // Detect your physical monitor's active resolution dimensions
+            // Detect your screen dimensions
             const screenWidth = window.screen.availWidth;
             const screenHeight = window.screen.availHeight;
 
-            // Generate randomized sizes for the popup box
-            const popupWidth = Math.floor(Math.random() * (400 - 250 + 1)) + 250; // Random width between 250px and 400px
-            const popupHeight = Math.floor(Math.random() * (400 - 250 + 1)) + 250; // Random height between 250px and 400px
+            // Generate randomized sizes for the popup windows
+            const popupWidth = Math.floor(Math.random() * (400 - 250 + 1)) + 250; 
+            const popupHeight = Math.floor(Math.random() * (400 - 250 + 1)) + 250; 
 
-            // Generate randomized screen coordinate locations
+            // Generate randomized positions across your screen
             const randomX = Math.floor(Math.random() * (screenWidth - popupWidth));
             const randomY = Math.floor(Math.random() * (screenHeight - popupHeight));
 
-            // Format strings to dictate spatial layout positioning to the browser window engine
+            // Browser features configuration
             const windowFeatures = `width=${popupWidth},height=${popupHeight},left=${randomX},top=${randomY},menubar=no,toolbar=no,location=no,status=no`;
 
-            // Open the new unique instance [1]
-            // We use a randomized window name parameter so they don't replace/overwrite each other [1]
-            window.open(target_url, `popup_${Math.random()}`, windowFeatures); [1]
+            // Open the new unique link instance
+            window.open(target_url, `popup_${Math.random()}`, windowFeatures);
         }
 
         function triggerBatchPopups() {
-            // Loops 24 times, scheduling each popup to open on a delayed stagger timeline
+            // Loops 24 times, scheduling each window to open precisely 0.3 seconds after the previous one
             for (let i = 0; i < amount_at_once; i++) {
                 setTimeout(() => {
                     openRandomWindow();
-                }, i * stagger_delay);
+                }, i * stagger_delay); // Item 0 at 0ms, Item 1 at 300ms, Item 2 at 600ms, etc.
             }
         }
 
-        // Button click triggers the popup avalanche
+        // Button click triggers the rapid-fire popup stream
         notifyBtn.addEventListener('click', triggerBatchPopups);
 
         // Automatic repeating loop execution
