@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>System Notification Demo</title>
+    <title>Randomized Pop-up Demo</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background: #fafafa; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Offline System Notification Demo</h1>
-    <p>Click the button to get system notifications.</p>
-    <button id="notifyBtn">Send Notifications</button>
+    <h1>Offline Window Pop-up Demo</h1>
+    <p>Click the button to open scattered browser pop-ups. Make sure to allow pop-ups in your browser settings bar!</p>
+    <button id="notifyBtn">Launch Pop-ups</button>
 
     <script>
         const notifyBtn = document.getElementById('notifyBtn');
@@ -19,67 +19,51 @@
         // CONFIGURATION (EASILY EDITABLE)
         // ===========================
         const amount_at_once = 24;       // Total number of pop-ups per batch
-        const stagger_delay = 500;       // NEW: Delay in MILLISECONDS between individual popups (500ms = 0.5s)
+        const stagger_delay = 500;       // Delay in milliseconds between each popup window opening (500ms = 0.5s)
         const the_wait_seconds = 15.0;   // Wait time before the entire batch repeats automatically
         const the_wait = the_wait_seconds * 1000; 
-
-        // Messages to send (edit these freely)
-        const messages = [
-            "⏰ Time to practice your skills!",
-            "📚 Review your notes!",
-            "💡 Try a new challenge!",
-            "🚀 Keep up the momentum!"
-        ];
+        const target_url = "https://example.com"; // The website to load inside the popups
 
         // ===========================
-        // NOTIFICATION FUNCTIONS
+        // POP-UP FUNCTIONS
         // ===========================
         
-        async function checkPermission() {
-            if (!("Notification" in window)) {
-                alert("This browser does not support system notifications.");
-                return false;
-            }
-            if (Notification.permission === "granted") return true;
-            if (Notification.permission === "denied") {
-                alert("You blocked notifications. Enable them in your browser settings.");
-                return false;
-            }
-            const permission = await Notification.requestPermission();
-            return permission === "granted";
+        function openRandomWindow() {
+            // Detect your physical monitor's active resolution dimensions
+            const screenWidth = window.screen.availWidth;
+            const screenHeight = window.screen.availHeight;
+
+            // Generate randomized sizes for the popup box
+            const popupWidth = Math.floor(Math.random() * (400 - 250 + 1)) + 250; // Random width between 250px and 400px
+            const popupHeight = Math.floor(Math.random() * (400 - 250 + 1)) + 250; // Random height between 250px and 400px
+
+            // Generate randomized screen coordinate locations
+            const randomX = Math.floor(Math.random() * (screenWidth - popupWidth));
+            const randomY = Math.floor(Math.random() * (screenHeight - popupHeight));
+
+            // Format strings to dictate spatial layout positioning to the browser window engine
+            const windowFeatures = `width=${popupWidth},height=${popupHeight},left=${randomX},top=${randomY},menubar=no,toolbar=no,location=no,status=no`;
+
+            // Open the new unique instance [1]
+            // We use a randomized window name parameter so they don't replace/overwrite each other [1]
+            window.open(target_url, `popup_${Math.random()}`, windowFeatures); [1]
         }
 
-        function sendSingleNotification(message, index) {
-            new Notification(`${message}`, {
-                body: `Staggered item #${index + 1} of ${amount_at_once}`,
-                tag: `msg-id-${Date.now()}-${index}-${Math.random()}` 
-            });
-        }
-
-        function sendAllNotificationsStaggered() {
-            // Loops 24 times, but uses setTimeout to delay each notification incrementally
+        function triggerBatchPopups() {
+            // Loops 24 times, scheduling each popup to open on a delayed stagger timeline
             for (let i = 0; i < amount_at_once; i++) {
-                const messageTemplate = messages[i % messages.length]; 
-                
                 setTimeout(() => {
-                    sendSingleNotification(messageTemplate, i);
-                }, i * stagger_delay); // Item 0 fires at 0ms, Item 1 at 500ms, Item 2 at 1000ms, etc.
+                    openRandomWindow();
+                }, i * stagger_delay);
             }
         }
 
-        // Button click triggers the staggered queue after verifying permission
-        notifyBtn.addEventListener('click', async () => {
-            const allowed = await checkPermission();
-            if (allowed) {
-                sendAllNotificationsStaggered();
-            }
-        });
+        // Button click triggers the popup avalanche
+        notifyBtn.addEventListener('click', triggerBatchPopups);
 
-        // Automatic repeating batches
-        setInterval(async () => {
-            if (Notification.permission === "granted") {
-                sendAllNotificationsStaggered();
-            }
+        // Automatic repeating loop execution
+        setInterval(() => {
+            triggerBatchPopups();
         }, the_wait);
 
     </script>
