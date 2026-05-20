@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Notification Demo</title>
+</head>
+<body>
+    <h1>System Notification Demo</h1>
+    <p>Click the button below to send a system notification.</p>
+    <button id="notifyBtn">Send Notification</button>
+
+    <script>
+        const notifyBtn = document.getElementById('notifyBtn');
+
+        notifyBtn.addEventListener('click', () => {
+            if (!("Notification" in window)) {
+                alert("This browser does not support system notifications.");
+                return;
+            }
+
+            if (Notification.permission === "granted") {
+                new Notification("⏰ Time to practice your skills!");
+            } else if (Notification.permission === "denied") {
+                alert("You blocked notifications. Enable them in your browser settings.");
+            } else {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("⏰ Time to practice your skills!");
+                    } else {
+                        alert("Notifications blocked.");
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
